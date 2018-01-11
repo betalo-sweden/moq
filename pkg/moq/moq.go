@@ -136,7 +136,10 @@ func (m *Mocker) Mock(w io.Writer, name ...string) error {
 		}
 		pkgFull := StripGopath(abs)
 
-		conf := loader.Config{ParserMode: parser.SpuriousErrors}
+		conf := loader.Config{
+			ParserMode: parser.SpuriousErrors,
+			Cwd: m.src,
+		}
 		conf.Import(pkgFull)
 		lprog, err := conf.Load()
 		if err != nil {
@@ -174,12 +177,15 @@ func (m *Mocker) Mock(w io.Writer, name ...string) error {
 			doc.Objects = append(doc.Objects, obj)
 		}
 	}
+
 	if mocksMethods {
 		doc.Imports = append(doc.Imports, "sync")
 	}
 	for pkgToImport := range m.imports {
-		doc.Imports = append(doc.Imports, pkgToImport)
+		doc.Imports = append(doc.Imports, StripVendorPath(pkgToImport))
 	}
+
+
 	var buf bytes.Buffer
 	err := m.tmpl.Execute(&buf, doc)
 	if err != nil {
@@ -324,4 +330,15 @@ func StripGopath(p string) string {
 		p = strings.TrimPrefix(p, path.Join(gopath, "src")+"/")
 	}
 	return p
+}
+
+
+// StripVendorPath splits the path on the first vendor dir and returns
+// everything after that. I guess this is the vendor dir for the project...
+func StripVendorPath(p string) string {
+	parts := strings.Split(p, "/vendor/")
+	if len(parts) == 1 {
+		return p
+	}
+	return strings.TrimLeft(path.Join(parts[1:]...), "/")
 }
