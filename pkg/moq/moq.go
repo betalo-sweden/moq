@@ -2,7 +2,6 @@ package moq
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"go/ast"
 	"go/format"
@@ -13,6 +12,9 @@ import (
 	"os"
 	"strings"
 	"text/template"
+	"golang.org/x/tools/go/loader"
+	"github.com/pkg/errors"
+	"path/filepath"
 )
 
 // This list comes from the golint codebase. Golint will complain about any of
@@ -75,11 +77,13 @@ func New(src, packageName string) (*Mocker, error) {
 	noTestFiles := func(i os.FileInfo) bool {
 		return !strings.HasSuffix(i.Name(), "_test.go")
 	}
+
 	pkgs, err := parser.ParseDir(fset, src, noTestFiles, parser.SpuriousErrors)
 	if err != nil {
 		return nil, err
 	}
 	if len(packageName) == 0 {
+
 		for pkgName := range pkgs {
 			if strings.Contains(pkgName, "_test") {
 				continue
@@ -114,19 +118,36 @@ func (m *Mocker) Mock(w io.Writer, name ...string) error {
 		PackageName: m.pkgName,
 		Imports:     moqImports,
 	}
+
 	mocksMethods := false
 	for _, pkg := range m.pkgs {
+
 		i := 0
 		files := make([]*ast.File, len(pkg.Files))
 		for _, file := range pkg.Files {
 			files[i] = file
 			i++
 		}
-		conf := types.Config{Importer: newImporter(m.src)}
-		tpkg, err := conf.Check(m.src, m.fset, files, nil)
+
+		abs, err := filepath.Abs(m.src)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to get abs path")
 		}
+
+		pkgFull := RemoveGopath(abs)
+
+		conf := loader.Config{ParserMode: parser.SpuriousErrors}
+		conf.Import(pkgFull)
+		lprog, err := conf.Load()
+		if err != nil {
+			return errors.Wrap(err, "failed to load package")
+		}
+
+		pkgInfo := lprog.Package(pkgFull)
+		if pkgInfo == nil {
+			return errors.New("nil package: "+pkgFull)
+		}
+		tpkg := pkgInfo.Pkg
 		for _, n := range name {
 			iface := tpkg.Scope().Lookup(n)
 			if iface == nil {
@@ -182,7 +203,7 @@ func (m *Mocker) packageQualifier(pkg *types.Package) string {
 	if pkg.Path() == "." {
 		wd, err := os.Getwd()
 		if err == nil {
-			path = stripGopath(wd)
+			path = StripGopath(wd)
 		}
 	}
 	m.imports[path] = true

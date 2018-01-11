@@ -31,7 +31,7 @@ func (i *customImporter) Import(path string) (*types.Package, error) {
 		if err != nil {
 			return nil, err
 		}
-		path = stripGopath(path)
+		path = StripGopath(path)
 	}
 	if pkg, ok := i.imported[path]; ok {
 		return pkg, nil
@@ -44,7 +44,7 @@ func (i *customImporter) Import(path string) (*types.Package, error) {
 	return pkg, nil
 }
 
-func gopathDir(source, pkg string) (string, error) {
+func GopathDir(source, pkg string) (string, error) {
 	// check vendor directory
 	vendorPath, found := vendorPath(source, pkg)
 	if found {
@@ -83,7 +83,7 @@ func vendorPath(source, pkg string) (string, bool) {
 	}
 }
 
-func removeGopath(p string) string {
+func RemoveGopath(p string) string {
 	for _, gopath := range gopaths() {
 		p = strings.Replace(p, path.Join(gopath, "src")+"/", "", 1)
 	}
@@ -104,7 +104,7 @@ func isGopath(path string) bool {
 }
 
 func (i *customImporter) fsPkg(pkg string) (*types.Package, error) {
-	dir, err := gopathDir(i.source, pkg)
+	dir, err := GopathDir(i.source, pkg)
 	if err != nil {
 		return importOrErr(i.base, pkg, err)
 	}
@@ -176,9 +176,9 @@ func newImporter(source string) types.Importer {
 // 	}
 // }
 
-// stripGopath teks the directory to a package and remove the gopath to get the
+// StripGopath teks the directory to a package and remove the gopath to get the
 // canonical package name.
-func stripGopath(p string) string {
+func StripGopath(p string) string {
 	for _, gopath := range gopaths() {
 		p = strings.TrimPrefix(p, path.Join(gopath, "src")+"/")
 	}

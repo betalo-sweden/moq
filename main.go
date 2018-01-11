@@ -2,14 +2,14 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 
-	"github.com/matryer/moq/pkg/moq"
+	"github.com/warmans/moq/pkg/moq"
+	"github.com/pkg/errors"
 )
 
 func main() {
@@ -48,7 +48,7 @@ func main() {
 	if err != nil {
 		return
 	}
-	err = m.Mock(out, args...)
+	err = errors.Wrap(m.Mock(out, args...), "mocking failed")
 	if err != nil {
 		return
 	}
