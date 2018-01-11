@@ -13,8 +13,9 @@ import (
 	"strings"
 	"text/template"
 	"golang.org/x/tools/go/loader"
-	"github.com/pkg/errors"
 	"path/filepath"
+	"errors"
+	"path"
 )
 
 // This list comes from the golint codebase. Golint will complain about any of
@@ -131,21 +132,20 @@ func (m *Mocker) Mock(w io.Writer, name ...string) error {
 
 		abs, err := filepath.Abs(m.src)
 		if err != nil {
-			return errors.Wrap(err, "failed to get abs path")
+			return err
 		}
-
-		pkgFull := RemoveGopath(abs)
+		pkgFull := StripGopath(abs)
 
 		conf := loader.Config{ParserMode: parser.SpuriousErrors}
 		conf.Import(pkgFull)
 		lprog, err := conf.Load()
 		if err != nil {
-			return errors.Wrap(err, "failed to load package")
+			return err
 		}
 
 		pkgInfo := lprog.Package(pkgFull)
 		if pkgInfo == nil {
-			return errors.New("nil package: "+pkgFull)
+			return errors.New("package was nil")
 		}
 		tpkg := pkgInfo.Pkg
 		for _, n := range name {
@@ -311,4 +311,17 @@ var templateFuncs = template.FuncMap{
 		}
 		return strings.ToUpper(s[0:1]) + s[1:]
 	},
+}
+
+func gopaths() []string {
+	return strings.Split(os.Getenv("GOPATH"), string(filepath.ListSeparator))
+}
+
+// StripGopath teks the directory to a package and remove the gopath to get the
+// canonical package name.
+func StripGopath(p string) string {
+	for _, gopath := range gopaths() {
+		p = strings.TrimPrefix(p, path.Join(gopath, "src")+"/")
+	}
+	return p
 }

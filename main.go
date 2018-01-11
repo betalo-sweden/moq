@@ -7,9 +7,9 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"errors"
 
-	"github.com/warmans/moq/pkg/moq"
-	"github.com/pkg/errors"
+	"github.com/matryer/moq/pkg/moq"
 )
 
 func main() {
@@ -48,7 +48,7 @@ func main() {
 	if err != nil {
 		return
 	}
-	err = errors.Wrap(m.Mock(out, args...), "mocking failed")
+	err = m.Mock(out, args...)
 	if err != nil {
 		return
 	}
