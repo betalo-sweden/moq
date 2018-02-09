@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
-	"go/format"
 	"go/parser"
 	"go/token"
 	"go/types"
@@ -17,6 +16,7 @@ import (
 	"text/template"
 
 	"golang.org/x/tools/go/loader"
+	"golang.org/x/tools/imports"
 )
 
 // This list comes from the golint codebase. Golint will complain about any of
@@ -169,9 +169,9 @@ func (m *Mocker) Mock(w io.Writer, name ...string) error {
 	if err != nil {
 		return err
 	}
-	formatted, err := format.Source(buf.Bytes())
+	formatted, err := imports.Process("", buf.Bytes(), nil)
 	if err != nil {
-		return fmt.Errorf("go/format: %s", err)
+		return fmt.Errorf("goimports: %s", err)
 	}
 	if _, err := w.Write(formatted); err != nil {
 		return err
