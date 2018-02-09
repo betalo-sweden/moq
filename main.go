@@ -2,12 +2,12 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
-	"errors"
 
 	"github.com/betalo-sweden/moq/pkg/moq"
 )
@@ -54,6 +54,6 @@ func main() {
 	}
 	// create the file
 	if len(*outFile) > 0 {
-		err = ioutil.WriteFile(*outFile, buf.Bytes(), 0777)
+		err = ioutil.WriteFile(*outFile, buf.Bytes(), 0644)
 	}
 }
