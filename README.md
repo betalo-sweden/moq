@@ -3,13 +3,15 @@ The following major modifications were applied:
 
 - Declare package import paths using the non-vendored notation; allowing the Go
   compiler to compile the mock source files without any further manual
-  post-editing. (ca23463, 1faeabd, 44c3e2a, 782c95e)
+  post-editing. ([ca23463](https://github.com/betalo-sweden/moq/commit/ca234637392db0e9d4d9fde5235df22b8cbfcafb), [1faeabd](https://github.com/betalo-sweden/moq/commit/1faeabd073f8d381acdfde1cbbebb96f06188cf5), [44c3e2a](https://github.com/betalo-sweden/moq/commit/44c3e2a5c504dc913411d111958d3a49830e8c4b), [782c95e](https://github.com/betalo-sweden/moq/commit/782c95e037a1981e46810e0988499a7220fe32c4))
 - Apply `goimports` (instead of `gofmt`) on generated source; allowing
-  configured strict linters to accept the mock source files. (ed4df3d)
+  configured strict linters to accept the mock source files. ([ed4df3d](https://github.com/betalo-sweden/moq/commit/ed4df3d6768318b5d2ee1d91b9fc4f0807724875))
+- Assert that mock implementation always fully satisfies the interface.
+  ([a870503](https://github.com/betalo-sweden/moq/commit/a87050393d8a6432efb45017a8ee1eef59d3248d))
 - Generate non-executable go source files; addressing a potential security risk.
-  (8385b56)
+  ([8385b56](https://github.com/betalo-sweden/moq/commit/8385b56848247e389b8641a5d5ed324aff93430d))
 - Remove tool name from `panic` output; reducing a reader's confusion when
-  `panic`s occur. (b92ddf9)
+  `panic`s occur. ([a781a2e](https://github.com/betalo-sweden/moq/commit/a781a2eb03616356cb1fcaf3d6962dc4599959ee))
 
 # moq
 
