@@ -22,6 +22,8 @@ var (
 {{- end }}
 )
 
+var _ {{.InterfaceName}} = (*{{.InterfaceName}}Mock)(nil)
+
 // {{.InterfaceName}}Mock is a mock implementation of {{.InterfaceName}}.
 //
 //     func TestSomethingThatUses{{.InterfaceName}}(t *testing.T) {

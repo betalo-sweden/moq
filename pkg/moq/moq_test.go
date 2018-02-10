@@ -23,6 +23,7 @@ func TestMoq(t *testing.T) {
 	// assertions of things that should be mentioned
 	var strs = []string{
 		"package example",
+		"var _ PersonStore = (*PersonStoreMock)(nil)",
 		"type PersonStoreMock struct",
 		"CreateFunc func(ctx context.Context, person *Person, confirm bool) error",
 		"GetFunc func(ctx context.Context, id string) (*Person, error)",
