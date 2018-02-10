@@ -1,3 +1,18 @@
+**Note**: This is a modified version of [matryer/moq](https://github.com/matryer/moq).
+The following major modifications were applied:
+
+- Declare package import paths using the non-vendored notation; allowing the Go
+  compiler to compile the mock source files without any further manual
+  post-editing. (ca23463, 1faeabd, 44c3e2a, 782c95e)
+- Apply `goimports` (instead of `gofmt`) on generated source; allowing
+  configured strict linters to accept the mock source files. (ed4df3d)
+- Generate non-executable go source files; addressing a potential security risk.
+  (8385b56)
+- Remove tool name from `panic` output; reducing a reader's confusion when
+  `panic`s occur. (b92ddf9)
+
+# moq
+
 ![moq logo](moq-logo-small.png) [![Build Status](https://travis-ci.org/matryer/moq.svg?branch=master)](https://travis-ci.org/matryer/moq) [![Go Report Card](https://goreportcard.com/badge/github.com/matryer/moq)](https://goreportcard.com/report/github.com/matryer/moq)
 
 Interface mocking tool for go generate.
@@ -63,7 +78,7 @@ This this example, Moq generated the `EmailSenderMock` type:
 ```go
 func TestCompleteSignup(t *testing.T) {
 
-	var sentTo string 
+	var sentTo string
 
 	mockedEmailSender = &EmailSenderMock{
 		SendFunc: func(to, subject, body string) error {
