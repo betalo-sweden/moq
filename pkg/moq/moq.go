@@ -69,6 +69,7 @@ type Mocker struct {
 	fset    *token.FileSet
 	pkgs    map[string]*ast.Package
 	pkgName string
+	pkgPath string
 
 	imports map[string]bool
 }
@@ -97,6 +98,12 @@ func New(src, packageName string) (*Mocker, error) {
 	if len(packageName) == 0 {
 		return nil, errors.New("failed to determine package name")
 	}
+	pkgPath, err := pkgPath(src)
+	if err != nil {
+		return nil, err
+	}
+	pkgPath = filepath.Join(filepath.Dir(pkgPath), packageName)
+
 	tmpl, err := template.New("moq").Funcs(templateFuncs).Parse(moqTemplate)
 	if err != nil {
 		return nil, err
@@ -107,6 +114,7 @@ func New(src, packageName string) (*Mocker, error) {
 		fset:    fset,
 		pkgs:    pkgs,
 		pkgName: packageName,
+		pkgPath: pkgPath,
 		imports: make(map[string]bool),
 	}, nil
 }
@@ -180,15 +188,12 @@ func (m *Mocker) Mock(w io.Writer, name ...string) error {
 }
 
 func (m *Mocker) packageQualifier(pkg *types.Package) string {
-	if m.pkgName == pkg.Name() {
+	path := pkg.Path()
+	if path == m.pkgPath {
 		return ""
 	}
-	path := pkg.Path()
-	if pkg.Path() == "." {
-		wd, err := os.Getwd()
-		if err == nil {
-			path = stripGopath(wd)
-		}
+	if path == "." {
+		path = m.pkgPath
 	}
 	m.imports[path] = true
 	return pkg.Name()
@@ -217,12 +222,10 @@ func (m *Mocker) extractArgs(sig *types.Signature, list *types.Tuple, nameFormat
 }
 
 func (*Mocker) pkgInfoFromPath(src string) (*loader.PackageInfo, error) {
-
-	abs, err := filepath.Abs(src)
+	pkgFull, err := pkgPath(src)
 	if err != nil {
 		return nil, err
 	}
-	pkgFull := stripGopath(abs)
 
 	conf := loader.Config{
 		ParserMode: parser.SpuriousErrors,
@@ -321,6 +324,15 @@ var templateFuncs = template.FuncMap{
 		}
 		return strings.ToUpper(s[0:1]) + s[1:]
 	},
+}
+
+// pkgPath resolved the full package path from a source directory.
+func pkgPath(src string) (string, error) {
+	abs, err := filepath.Abs(src)
+	if err != nil {
+		return "", err
+	}
+	return stripGopath(abs), nil
 }
 
 // stripVendorPath strips the vendor dir prefix from a package path.

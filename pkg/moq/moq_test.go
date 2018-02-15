@@ -70,6 +70,32 @@ func TestMoqExplicitPackage(t *testing.T) {
 	}
 }
 
+func TestMoqExplicitPackageSameName(t *testing.T) {
+	m, err := New("testpackages/samepackagename", "")
+	if err != nil {
+		t.Fatalf("moq.New: %s", err)
+	}
+	var buf bytes.Buffer
+	err = m.Mock(&buf, "PersonStore")
+	if err != nil {
+		t.Errorf("m.Mock: %s", err)
+	}
+	s := buf.String()
+	// assertions of things that should be mentioned
+	var strs = []string{
+		"package same",
+		"CreateFunc func(ctx context.Context, person *same.Person, confirm bool) error",
+		"GetFunc func(ctx context.Context, id string) (*same.Person, error)",
+		"func (mock *PersonStoreMock) Create(ctx context.Context, person *same.Person, confirm bool) error",
+		"func (mock *PersonStoreMock) Get(ctx context.Context, id string) (*same.Person, error)",
+	}
+	for _, str := range strs {
+		if !strings.Contains(s, str) {
+			t.Errorf("expected but missing: \"%s\"", str)
+		}
+	}
+}
+
 // TestVeradicArguments tests to ensure variadic work as
 // expected.
 // see https://github.com/matryer/moq/issues/5
