@@ -96,6 +96,42 @@ func TestMoqExplicitPackageSameName(t *testing.T) {
 	}
 }
 
+func TestMoqPackageAndFolderNamedDifferently(t *testing.T) {
+	m, err := New("testpackages/package_named_differently_from_folder", "")
+	if err != nil {
+		t.Fatalf("moq.New: %s", err)
+	}
+	var buf bytes.Buffer
+	err = m.Mock(&buf, "PersonStore")
+	if err != nil {
+		t.Errorf("m.Mock: %s", err)
+	}
+	s := buf.String()
+
+	// assertions of things that should be mentioned
+	var shouldBeMentioned = []string{
+		"GetFunc func() *Person",
+		"func (mock *PersonStoreMock) Get() *Person",
+	}
+	for _, str := range shouldBeMentioned {
+		if !strings.Contains(s, str) {
+			t.Errorf("expected but missing: \"%s\"", str)
+		}
+	}
+
+	// assertions of things that should not be mentioned
+	var shouldNotBeMentioned = []string{
+		"github.com/betalo-sweden/moq/pkg/moq/testpackages/package_named_differently_from_folder",
+		"GetFunc: func() *p.Person",
+		"func (mock *PersonStoreMock) Get() *p.Person",
+	}
+	for _, str := range shouldNotBeMentioned {
+		if strings.Contains(s, str) {
+			t.Errorf("not expected but found: \"%s\"", str)
+		}
+	}
+}
+
 // TestVeradicArguments tests to ensure variadic work as
 // expected.
 // see https://github.com/matryer/moq/issues/5
