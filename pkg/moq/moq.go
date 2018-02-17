@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
+	"go/build"
 	"go/parser"
 	"go/token"
 	"go/types"
@@ -359,6 +360,9 @@ func stripGopath(p string) string {
 	return p
 }
 
+// gopaths returns a list of GOPATH paths.
+//
+// See https://github.com/golang/go/blob/master/src/cmd/go/internal/envcmd/env.go#L58
 func gopaths() []string {
-	return strings.Split(os.Getenv("GOPATH"), string(filepath.ListSeparator))
+	return filepath.SplitList(build.Default.GOPATH)
 }
