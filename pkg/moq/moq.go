@@ -190,7 +190,9 @@ func (m *Mocker) Mock(w io.Writer, name ...string) error {
 
 func (m *Mocker) packageQualifier(pkg *types.Package) string {
 	path := pkg.Path()
-	if path == m.pkgPath {
+	importPath := filepath.Join(filepath.Dir(path), pkg.Name())
+
+	if importPath == m.pkgPath {
 		return ""
 	}
 	if path == "." {
