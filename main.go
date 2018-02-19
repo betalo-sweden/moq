@@ -46,6 +46,11 @@ func main() {
 	out = os.Stdout
 	if len(*outFile) > 0 {
 		out = &buf
+		// Remove mock file before starting in order to avoid parsing issues
+		err = os.Remove(*outFile)
+		if err != nil && !os.IsNotExist(err) {
+			log.Fatalln(err)
+		}
 	}
 
 	// generate mock source
