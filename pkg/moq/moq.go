@@ -120,10 +120,29 @@ func New(src, packageName string) (*Mocker, error) {
 	}, nil
 }
 
+func removeOldMocks(srcFolder string) error {
+	abs, err := filepath.Abs(srcFolder)
+	if err != nil {
+		return err
+	}
+	oldMocks, err := filepath.Glob(filepath.Join(abs, "*_mock.go"))
+	if err != nil {
+		return err
+	}
+	for _, mock := range oldMocks {
+		os.Remove(mock)
+	}
+	return nil
+}
+
 // Mock generates a mock for the specified interface name.
 func (m *Mocker) Mock(w io.Writer, name ...string) error {
 	if len(name) == 0 {
 		return errors.New("must specify one interface")
+	}
+
+	if err := removeOldMocks(m.src); err != nil {
+		return errors.New("failed to clean up old mocks")
 	}
 
 	pkgInfo, err := m.pkgInfoFromPath(m.src)
